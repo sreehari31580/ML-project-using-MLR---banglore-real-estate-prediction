@@ -9,12 +9,16 @@ import os
 
 # Define base directory for model files
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, 'realestate_model.pkl')
-SCALER_PATH = os.path.join(BASE_DIR, 'target_scaler.pkl')
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
+MODEL_PATH = os.path.join(MODELS_DIR, 'realestate_model.pkl')
+SCALER_PATH = os.path.join(MODELS_DIR, 'target_scaler.pkl')
 DATA_PATH = os.path.join(BASE_DIR, 'preprocessed_realestate_data.csv')
 
 def train_model():
     try:
+        # Create models directory if it doesn't exist
+        os.makedirs(MODELS_DIR, exist_ok=True)
+        
         # Load the preprocessed dataset
         if os.path.exists(DATA_PATH):
             df = pd.read_csv(DATA_PATH)
@@ -22,8 +26,8 @@ def train_model():
             raise FileNotFoundError(f"Preprocessed data file not found at {DATA_PATH}")
 
         # Print price range for debugging
-        print(f"Price range in dataset: ₹{df['price'].min():,.2f} to ₹{df['price'].max():,.2f}")
-        print(f"Average price: ₹{df['price'].mean():,.2f}")
+        print(f"Price range in dataset: {df['price'].min():,.2f} to {df['price'].max():,.2f}")
+        print(f"Average price: {df['price'].mean():,.2f}")
 
         # Define features and target variable
         X = df.drop('price', axis=1)  # Features
@@ -48,12 +52,12 @@ def train_model():
         # Save the model and scaler
         dump(model, MODEL_PATH)
         dump(target_scaler, SCALER_PATH)
-        print("Model and scaler saved successfully")
-
-        return model
+        print(f"Model saved to: {MODEL_PATH}")
+        print(f"Scaler saved to: {SCALER_PATH}")
+        return True
     except Exception as e:
-        print(f"Error during model training: {str(e)}")
-        raise
+        print(f"An error occurred: {str(e)}")
+        return False
 
 def load_model():
     if not os.path.exists(MODEL_PATH):
