@@ -49,14 +49,17 @@ def load_data():
         for col in numerical_cols:
             if col in df.columns:
                 median_value = df[col].median()
-                df[col].fillna(median_value, inplace=True)
+                df[col] = df[col].fillna(median_value)
 
         # Convert categorical variables to numerical
         categorical_columns = ['area_type', 'availability', 'location', 'size', 'society']
         df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
 
+        # Convert price from lakhs to rupees (1 lakh = 100,000)
+        df['price'] = df['price'] * 100000
+
         # Remove outliers using IQR method
-        for col in numerical_cols:
+        for col in numerical_cols + ['price']:
             Q1 = df[col].quantile(0.25)
             Q3 = df[col].quantile(0.75)
             IQR = Q3 - Q1
@@ -64,13 +67,11 @@ def load_data():
             upper_bound = Q3 + 1.5 * IQR
             df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
 
-        # Scale numerical features
-        scaler = StandardScaler()
-        df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
-
         # Save preprocessed data
         df.to_csv(preprocessed_file, index=False)
         print(f"Preprocessed data saved to {preprocessed_file}")
+        print(f"\nPrice range: Rs. {df['price'].min():,.2f} to Rs. {df['price'].max():,.2f}")
+        print(f"Average price: Rs. {df['price'].mean():,.2f}")
         return df
         
     except Exception as e:
