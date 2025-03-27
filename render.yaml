@@ -7,7 +7,7 @@ services:
       python -m pip install --upgrade pip
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: gunicorn realestate.wsgi:application
+    startCommand: gunicorn realestate.wsgi:application --workers 2 --threads 4 --timeout 60
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
