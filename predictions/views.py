@@ -63,14 +63,11 @@ def predict(request):
             # Make prediction
             prediction_scaled = model.predict(input_data)
 
-            # Inverse transform the prediction to get actual price in lakhs
-            prediction_lakhs = target_scaler.inverse_transform(prediction_scaled.reshape(-1, 1)).flatten()[0]
-
-            # Convert lakhs to rupees (1 lakh = 100,000 rupees)
-            prediction_rupees = prediction_lakhs * 100000
+            # Inverse transform the prediction to get actual price
+            prediction = target_scaler.inverse_transform(prediction_scaled.reshape(-1, 1)).flatten()[0]
 
             # Format the prediction to 2 decimal places
-            formatted_prediction = "{:,.2f}".format(prediction_rupees)
+            formatted_prediction = "{:,.2f}".format(prediction)
 
             return render(request, 'predictions/result.html', {
                 'prediction': formatted_prediction,
