@@ -9,11 +9,19 @@ def load_data():
         # Get base directory
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         data_file = os.path.join(base_dir, 'realestate_data.csv')
+        preprocessed_file = os.path.join(base_dir, 'preprocessed_realestate_data.csv')
         
-        # Load the dataset
+        # If preprocessed file exists and is newer than raw data, use it
+        if os.path.exists(preprocessed_file) and os.path.exists(data_file):
+            if os.path.getmtime(preprocessed_file) > os.path.getmtime(data_file):
+                print("Loading preprocessed data...")
+                return pd.read_csv(preprocessed_file)
+            
+        # Load and preprocess raw data
         if not os.path.exists(data_file):
             raise FileNotFoundError(f"Data file not found at {data_file}")
             
+        print("Processing raw data...")
         df = pd.read_csv(data_file)
 
         # Display initial data info
@@ -37,9 +45,7 @@ def load_data():
         # Clean the 'total_sqft' column
         def convert_sqft(value):
             try:
-                # Remove any non-numeric characters (except for decimal points and hyphens)
                 if isinstance(value, str):
-                    # Handle range values (e.g., "1500 - 1800")
                     if ' - ' in value:
                         parts = value.split(' - ')
                         if len(parts) == 2:
@@ -49,8 +55,6 @@ def load_data():
                                 return (low + high) / 2
                             except ValueError:
                                 return None
-                    
-                    # Handle single values
                     cleaned_value = re.sub(r'[^\d.]+', '', value)
                     if cleaned_value:
                         return float(cleaned_value)
@@ -82,9 +86,8 @@ def load_data():
         df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
 
         # Save preprocessed data
-        output_file = os.path.join(base_dir, 'preprocessed_realestate_data.csv')
-        df.to_csv(output_file, index=False)
-        print(f"\nPreprocessed data saved to {output_file}")
+        print(f"\nSaving preprocessed data to {preprocessed_file}")
+        df.to_csv(preprocessed_file, index=False)
 
         return df
 
